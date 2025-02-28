@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import Catalog, { ProductType } from './Catalog'
+import Preview from './Preview';
 
 const Products = () => {
   const [selectedProduct, setSelectedProduct] = useState<ProductType>({
@@ -17,6 +18,7 @@ const Products = () => {
   return (
     <div id="catalog" className='max-w-[1536px] flex flex-col mx-auto pt-8'>
       <Catalog selectedProduct={selectedProduct} onProductClick={handleProductClick}/>
+      <Preview selectedProduct={selectedProduct} />
     </div>
   )
 }

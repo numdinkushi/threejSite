@@ -2,6 +2,7 @@ import Features from "@/components/sections/Features";
 import Footer from "@/components/sections/Footer";
 import Hero from "@/components/sections/Hero";
 import Navbar from "@/components/sections/Navbar";
+import Preview from "@/components/sections/Preview";
 import Products from "@/components/sections/Products";
 import Reviews from "@/components/sections/Reviews";
 import Sale from "@/components/sections/Sale";
@@ -12,6 +13,7 @@ export default function Home() {
       <Navbar />
       <Hero />
       <Products />
+      {/* <Preview /> */}
       <Features />
       <Reviews />
       <div className="bg-stone-800">
