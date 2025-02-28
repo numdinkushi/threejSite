@@ -1,4 +1,4 @@
-'use client';
+'client';
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
@@ -7,9 +7,11 @@ import { ProductType } from './Catalog';
 interface PreviewProps {
   selectedProduct: ProductType;
 }
+
 const Preview = ({ selectedProduct }: PreviewProps) => {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const modelRef = useRef<THREE.Object3D | null>(null);
+  const isMouseDownRef = useRef<boolean>(false);
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -47,41 +49,98 @@ const Preview = ({ selectedProduct }: PreviewProps) => {
     scene.add(directionalLightRight);
 
     const loadModel = (modelSrc: string) => {
-
       loader.load(modelSrc, (gltf) => {
         if (modelRef.current) {
           scene.remove(modelRef.current);
         }
         const model = gltf.scene;
         model.scale.set(1, 1, 1);
-        model.position.set(0, 0, -2);
+        model.position.set(0, 12, -2);
         scene.add(model);
         modelRef.current = model;
-
-        animate();
       });
     };
 
     loadModel(selectedProduct.modelSrc);
 
     camera.position.z = 5;
-
-    renderer.setAnimationLoop(animate);
+    const gravity = 0.002;
+    const bounceFactor = 0.3;
+    const groundY = 0;
+    let velocityY = 0;
 
     function animate() {
+      requestAnimationFrame(animate);
+
+      if (modelRef.current) {
+        velocityY -= gravity;
+        modelRef.current.position.y += velocityY;
+
+        if (modelRef.current.position.y <= groundY) {
+          modelRef.current.position.y = groundY;
+          velocityY *= -bounceFactor;
+
+          // Stop bouncing if the velocity is very low
+          if (Math.abs(velocityY) < 0.01) {
+            velocityY = 0;
+          }
+        }
+      }
+
       renderer.render(scene, camera);
     }
+
+    animate();
+
+    const handleMouseMove = (event: MouseEvent) => {
+      if (modelRef.current && isMouseDownRef.current) {
+        const mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+        modelRef.current.rotation.y = mouseX * Math.PI;
+      }
+    };
+
+    const handleMouseDown = () => {
+      isMouseDownRef.current = true;
+    };
+
+    // interaction to make object model start reset depending on mouse interaction
+    const handleInteractionEnd = () => {
+      isMouseDownRef.current = false;
+
+      const animateRotationBack = () => {
+        if (modelRef.current) {
+          const modelRotation = modelRef.current.rotation.y;
+
+          if (Math.abs(modelRotation) > 0.01) {
+            modelRef.current.rotation.y -= (modelRotation * 0.01);
+            requestAnimationFrame(animateRotationBack);
+          } else {
+            modelRef.current.rotation.y = 0;
+          }
+        }
+      };
+
+      animateRotationBack();
+    };
+
+    mount.addEventListener('mousemove', handleMouseMove);
+    mount.addEventListener('mousedown', handleMouseDown);
+    mount.addEventListener('mouseup', handleInteractionEnd);
+    mount.addEventListener('mouseleave', handleInteractionEnd);
 
     return () => {
       if (mount) {
         mount.removeChild(renderer.domElement);
-
       }
+      mount.removeEventListener('mousemove', handleMouseMove);
+      mount.removeEventListener('mousedown', handleMouseDown);
+      mount.removeEventListener('mouseup', handleInteractionEnd);
+      mount.removeEventListener('mouseleave', handleInteractionEnd);
     };
   }, [selectedProduct]);
 
   return (
-    <div ref={mountRef} className='overflow-hidden h-[400px] md:h-[500px] pt-8  md:pt-0' />
+    <div ref={mountRef} className='overflow-hidden h-[400px] md:h-[500px] pt-8 md:pt-0' />
   );
 };
 
