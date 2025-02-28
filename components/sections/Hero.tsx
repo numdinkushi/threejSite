@@ -4,7 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import React, { useEffect } from 'react'
 import { MdKeyboardDoubleArrowDown } from 'react-icons/md'
-import TypingText from '../TypingText'
+import TypingText from '../TypingText';
 
 const Hero = () => {
   useEffect(() => {
