@@ -2,7 +2,7 @@
 import { Canvas, useLoader } from '@react-three/fiber';
 import { useInView } from 'framer-motion';
 import Link from 'next/link';
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 import * as THREE from "three";
 
@@ -32,29 +32,47 @@ const Sale = () => {
   const mountRef = useRef(null);
   const isInview = useInView(mountRef, { once: true });
 
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (typeof window !== 'undefined') {
+        setIsMobile(window.innerWidth <= 768);
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
   const leftModelInitialPosition: [number, number, number] = [-2, 0, 0];
   const rightModelInitialPosition: [number, number, number] = [2, 0, 0];
 
   const leftModelFinalPosition: [number, number, number] = [-3.1, -1.3, 0];
-  const rightModelFinalPosition: [number, number, number] = [2.9, 0.8, 0];
+  const rightModelFinalPosition: [number, number, number] = isMobile ? [1.5, -1, 0] : [2.9, 0.8, 0];
 
   const modelRotation: [number, number, number] = [Math.PI / 2, Math.PI / 180 * 80, Math.PI / 180 * -10];
 
   return (
     <div className='max-w-[1536px] flex flex-col items-center gap-8 pt-32 mx-auto'>
-      <div ref={mountRef} className="absolute w-full h-screen lg:h-[150vh]  top-[150rem] left-0">
+      <div ref={mountRef} className="absolute w-full h-screen lg:h-[150vh] bottom:0 lg:top-[150rem] left-0">
         <Canvas camera={{ position: [0, 0, 5], fov: 75 }} className='w-full h-full'>
           <ambientLight intensity={0.5} />
           <directionalLight position={[5, 5, 5]} intensity={3} />
           <directionalLight position={[-5, 5, 5]} intensity={3} />
           {isInview &&
             <>
-              <Model
-                url='/assets/keyboard.glb'
-                initialPosition={leftModelInitialPosition}
-                finalPosition={leftModelFinalPosition}
-                rotation={modelRotation}
-              />
+              {!isMobile &&
+                <Model
+                  url='/assets/keyboard.glb'
+                  initialPosition={leftModelInitialPosition}
+                  finalPosition={leftModelFinalPosition}
+                  rotation={modelRotation}
+                />
+              }
               <Model
                 url='/assets/keyboard3.glb'
                 initialPosition={rightModelInitialPosition}
